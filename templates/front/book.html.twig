@@ -1,0 +1,67 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+<h1>{{book.title}}</h1>
+
+<h2>Note Moyenne : <span id="class-moyenne">{{noteMoyenne}}</span></h2>
+
+{% if app.user %}
+{{form_start(form)}}
+{{form_widget(form)}}
+{{form_end(form)}}
+
+<div class="d-flex my-5" id="div-note" data-id="{{book.id}}" data-note="{{note}}">
+    <i class="rank fa-regular fa-star"></i>
+    <i class="rank fa-regular fa-star"></i>
+    <i class="rank fa-regular fa-star"></i>
+    <i class="rank fa-regular fa-star"></i>
+    <i class="rank fa-regular fa-star"></i>
+</div>
+{% else %}
+    <a href="{{path('app_login')}}">Connectez vous pour commenter</a>
+{% endif %}
+
+
+
+{% if book.comments | length > 0 %}
+    {% for comment in book.comments %}
+        <h5>{{comment.user.name}} {{comment.user.firstname}}</h5>
+        <p>{{comment.content}}</p>
+    {% endfor %}
+{% endif %}
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    $(document).ready(function (){
+        const stars = $('.rank');
+        let oldNote = $('#div-note').data('note');
+
+        let oldStar = (stars[oldNote - 1]);
+        $(oldStar).removeClass('fa-regular').addClass('fa-solid');
+        $(oldStar).prevAll().addClass('fa-solid').removeClass('fa-regular');
+
+        for(star of stars){
+            $(star).on('click', function(){
+                stars.removeClass('fa-solid').addClass('fa-regular');
+                $(this).removeClass('fa-regular').addClass('fa-solid');
+                $(this).prevAll().addClass('fa-solid').removeClass('fa-regular');
+                let note = ($(this).index() + 1);
+                let bookId = $(this).parent().data('id');
+                $.ajax({
+                    url: "{{path('app_rank')}}",
+                    data: {
+                        note: note,
+                        bookId: bookId
+                    },
+                }).done(function (response){
+                    $('#class-moyenne').html(response.note);
+                })
+
+            })
+        }
+
+    })
+</script>
+{% endblock %}
